@@ -7,8 +7,19 @@ Groups not marked for drill-down keep the standard Filament collapsible behavior
 ## Requirements
 
 - PHP 8.1+
-- Filament 3.x
+- Filament 3.x, 4.x, or 5.x
 - Laravel 10, 11, or 12
+
+## Version Compatibility
+
+| Plugin Version | Filament | Laravel |
+|---------------|----------|---------|
+| 1.x           | 3.x, 4.x, 5.x | 10, 11, 12 |
+
+> **Note:** In Filament v4+, the sidebar became a Livewire component. The published view override still works, but you should re-publish the views after upgrading Filament to a new major version:
+> ```bash
+> php artisan vendor:publish --tag=drilldown-sidebar-views --force
+> ```
 
 ## Installation
 
