@@ -1,0 +1,39 @@
+{
+    "name": "osamaatef/filament-drilldown-sidebar",
+    "description": "A Filament plugin that adds optional drill-down navigation to sidebar groups.",
+    "keywords": [
+        "filament",
+        "laravel",
+        "sidebar",
+        "drilldown",
+        "navigation"
+    ],
+    "homepage": "https://github.com/osamaatef1/filament-drilldown-sidebar",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Osama Atef",
+            "email": "osamaatef1@users.noreply.github.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "filament/filament": "^3.0",
+        "illuminate/contracts": "^10.0||^11.0||^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OsamaAtef\\DrilldownSidebar\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "OsamaAtef\\DrilldownSidebar\\DrilldownSidebarServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
