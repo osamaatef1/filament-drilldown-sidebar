@@ -62,9 +62,9 @@ Groups listed in `drilledGroups()` will render as a button with a chevron. Click
 - **Collapsed sidebar**: When the sidebar is collapsed (icon-only mode), all groups use Filament's default icon dropdown regardless of drill-down status.
 - **Auto-drill**: If the current page belongs to a drilled group, the sidebar automatically opens that group's detail view on page load.
 
-## Screenshots
+## Screenshot
 
-_Coming soon_
+![Sidebar Drilldown](art/cover.jpg)
 
 ## License
 
