@@ -16,7 +16,11 @@ Groups not marked for drill-down keep the standard Filament collapsible behavior
 |---------------|----------|---------|
 | 1.x           | 3.x, 4.x, 5.x | 10, 11, 12 |
 
-> **Note:** In Filament v4+, the sidebar became a Livewire component. The published view override still works, but you should re-publish the views after upgrading Filament to a new major version:
+The plugin automatically detects your Filament version and publishes the correct sidebar view:
+- **Filament 3.x**: Publishes a Blade component override (`components/sidebar/index.blade.php`)
+- **Filament 4.x / 5.x**: Publishes a Livewire view override (`livewire/sidebar.blade.php`)
+
+> **Note:** After upgrading Filament to a new major version, re-publish the views:
 > ```bash
 > php artisan vendor:publish --tag=drilldown-sidebar-views --force
 > ```
