@@ -36,17 +36,17 @@
    --------------------------------------------------------------- */
 .fi-dd-group-label {
     display: block;
-    font-size: 0.75rem;       /* text-xs */
-    font-weight: 700;          /* font-bold */
-    text-transform: uppercase; /* uppercase */
-    letter-spacing: 0.05em;   /* tracking-wider */
-    color: var(--color-gray-400, rgb(156 163 175));
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-gray-400);
     padding-inline: 0.5rem;
     margin-bottom: 0.25rem;
 }
 
 :where(.dark, .dark *) .fi-dd-group-label {
-    color: var(--color-gray-500, rgb(107 114 128));
+    color: var(--color-gray-500);
 }
 
 /* ---------------------------------------------------------------
@@ -56,15 +56,15 @@
     display: flex;
     width: 100%;
     align-items: center;
-    column-gap: 0.75rem;       /* gap-x-3 */
-    border-radius: 0.5rem;     /* rounded-lg */
-    padding: 0.625rem 0.5rem;  /* py-2.5 px-2 */
-    font-size: 0.875rem;       /* text-sm */
-    font-weight: 600;          /* font-semibold */
+    column-gap: 0.75rem;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
     transition-property: color, background-color, border-color;
     transition-duration: 75ms;
     outline: none;
-    color: var(--color-gray-700, rgb(55 65 81));
+    color: var(--color-gray-700);
     background: transparent;
     border: none;
     cursor: pointer;
@@ -72,12 +72,12 @@
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn {
-    color: var(--color-gray-200, rgb(229 231 235));
+    color: var(--color-gray-200);
 }
 
 .fi-dd-group-btn:hover,
 .fi-dd-group-btn:focus-visible {
-    background-color: var(--color-gray-100, rgb(243 244 246));
+    background-color: var(--color-gray-100);
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn:hover,
@@ -86,33 +86,33 @@
 }
 
 .fi-dd-group-btn.fi-active {
-    color: var(--color-primary-600, rgb(37 99 235));
-    background-color: var(--color-primary-50, rgb(239 246 255));
+    color: var(--color-primary-600);
+    background-color: var(--color-primary-50);
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn.fi-active {
-    color: var(--color-primary-400, rgb(96 165 250));
+    color: var(--color-primary-400);
     background-color: rgb(255 255 255 / 0.05);
 }
 
 /* Icon inside drilldown button */
 .fi-dd-group-btn .fi-dd-btn-icon {
     flex-shrink: 0;
-    height: 1.25rem; /* h-5 */
-    width: 1.25rem;  /* w-5 */
-    color: var(--color-gray-400, rgb(156 163 175));
+    height: 1.25rem;
+    width: 1.25rem;
+    color: var(--color-gray-400);
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn .fi-dd-btn-icon {
-    color: var(--color-gray-500, rgb(107 114 128));
+    color: var(--color-gray-500);
 }
 
 .fi-dd-group-btn.fi-active .fi-dd-btn-icon {
-    color: var(--color-primary-500, rgb(59 130 246));
+    color: var(--color-primary-500);
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn.fi-active .fi-dd-btn-icon {
-    color: var(--color-primary-400, rgb(96 165 250));
+    color: var(--color-primary-400);
 }
 
 /* Label text inside drilldown button */
@@ -127,13 +127,13 @@
 /* Chevron icon inside drilldown button */
 .fi-dd-group-btn .fi-dd-btn-chevron {
     flex-shrink: 0;
-    height: 1rem; /* h-4 */
-    width: 1rem;  /* w-4 */
-    color: var(--color-gray-400, rgb(156 163 175));
+    height: 1rem;
+    width: 1rem;
+    color: var(--color-gray-400);
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn .fi-dd-btn-chevron {
-    color: var(--color-gray-500, rgb(107 114 128));
+    color: var(--color-gray-500);
 }
 
 /* ---------------------------------------------------------------
@@ -142,12 +142,12 @@
 .fi-dd-back-btn {
     display: flex;
     align-items: center;
-    column-gap: 0.5rem;   /* gap-x-2 */
+    column-gap: 0.5rem;
     border-radius: 0.5rem;
-    padding: 0.5rem;      /* p-2 */
+    padding: 0.5rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--color-gray-500, rgb(107 114 128));
+    color: var(--color-gray-500);
     transition-property: color, background-color;
     transition-duration: 75ms;
     width: 100%;
@@ -159,46 +159,46 @@
 }
 
 :where(.dark, .dark *) .fi-dd-back-btn {
-    color: var(--color-gray-400, rgb(156 163 175));
+    color: var(--color-gray-400);
 }
 
 .fi-dd-back-btn:hover,
 .fi-dd-back-btn:focus-visible {
-    background-color: var(--color-gray-100, rgb(243 244 246));
-    color: var(--color-gray-700, rgb(55 65 81));
+    background-color: var(--color-gray-100);
+    color: var(--color-gray-700);
 }
 
 :where(.dark, .dark *) .fi-dd-back-btn:hover,
 :where(.dark, .dark *) .fi-dd-back-btn:focus-visible {
     background-color: rgb(255 255 255 / 0.05);
-    color: var(--color-gray-200, rgb(229 231 235));
+    color: var(--color-gray-200);
 }
 
 /* ---------------------------------------------------------------
    Detail panel
    --------------------------------------------------------------- */
 .fi-dd-detail-panel {
-    margin-top: 0.5rem; /* mt-2 */
+    margin-top: 0.5rem;
 }
 
 .fi-dd-detail-header {
     display: flex;
     align-items: center;
-    column-gap: 0.75rem; /* gap-x-3 */
+    column-gap: 0.75rem;
     padding-inline: 0.5rem;
-    padding-bottom: 0.75rem; /* pb-3 */
-    padding-top: 0.25rem;    /* pt-1 */
+    padding-bottom: 0.75rem;
+    padding-top: 0.25rem;
 }
 
 .fi-dd-detail-icon {
-    height: 1.5rem; /* h-6 */
-    width: 1.5rem;  /* w-6 */
+    height: 1.5rem;
+    width: 1.5rem;
     flex-shrink: 0;
-    color: var(--color-primary-500, rgb(59 130 246));
+    color: var(--color-primary-500);
 }
 
 :where(.dark, .dark *) .fi-dd-detail-icon {
-    color: var(--color-primary-400, rgb(96 165 250));
+    color: var(--color-primary-400);
 }
 
 .fi-dd-detail-title {
@@ -206,27 +206,27 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-primary-600, rgb(37 99 235));
+    color: var(--color-primary-600);
 }
 
 :where(.dark, .dark *) .fi-dd-detail-title {
-    color: var(--color-primary-400, rgb(96 165 250));
+    color: var(--color-primary-400);
 }
 
 .fi-dd-detail-divider {
-    border-color: var(--color-primary-200, rgb(191 219 254));
-    margin-inline: 0.25rem; /* mx-1 */
-    margin-bottom: 0.5rem;  /* mb-2 */
+    border-color: var(--color-primary-200);
+    margin-inline: 0.25rem;
+    margin-bottom: 0.5rem;
 }
 
 :where(.dark, .dark *) .fi-dd-detail-divider {
-    border-color: var(--color-primary-800, rgb(30 64 175));
+    border-color: var(--color-primary-800);
 }
 
 .fi-dd-detail-items {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem; /* gap-y-1 */
+    gap: 0.25rem;
 }
 
 /* ---------------------------------------------------------------
@@ -239,7 +239,7 @@
 /* Main view enter */
 .fi-dd-main-enter {
     transition-property: opacity, transform;
-    transition-timing-function: cubic-bezier(0, 0, 0.2, 1); /* ease-out */
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
     transition-duration: 200ms;
 }
 
@@ -256,7 +256,7 @@
 /* Main view leave */
 .fi-dd-main-leave {
     transition-property: opacity, transform;
-    transition-timing-function: cubic-bezier(0.4, 0, 1, 1); /* ease-in */
+    transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
     transition-duration: 200ms;
 }
 
@@ -273,7 +273,7 @@
 /* Detail view enter */
 .fi-dd-detail-enter {
     transition-property: opacity, transform;
-    transition-timing-function: cubic-bezier(0, 0, 0.2, 1); /* ease-out */
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
     transition-duration: 200ms;
 }
 
@@ -290,7 +290,7 @@
 /* Detail view leave */
 .fi-dd-detail-leave {
     transition-property: opacity, transform;
-    transition-timing-function: cubic-bezier(0.4, 0, 1, 1); /* ease-in */
+    transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
     transition-duration: 200ms;
 }
 
