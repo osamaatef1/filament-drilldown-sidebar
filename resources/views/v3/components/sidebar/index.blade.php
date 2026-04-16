@@ -8,7 +8,11 @@
     $sidebarCollapsible = filament()->isSidebarCollapsibleOnDesktop();
 
     // Groups marked as drilled via DrilldownSidebarPlugin get drill-down navigation
-    $drilledGroupLabels = filament('drilldown-sidebar')?->getDrilledGroups() ?? [];
+    try {
+        $drilledGroupLabels = filament('drilldown-sidebar')?->getDrilledGroups() ?? [];
+    } catch (\Exception $e) {
+        $drilledGroupLabels = [];
+    }
 
     $drilldownGroups = collect($navigation)->filter(
         fn (\Filament\Navigation\NavigationGroup $group) =>
