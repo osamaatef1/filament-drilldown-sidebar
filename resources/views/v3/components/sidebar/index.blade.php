@@ -186,12 +186,12 @@
                  ======================== --}}
             <div
                 x-show="view === 'main'"
-                x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 -translate-x-3"
-                x-transition:enter-end="opacity-100 translate-x-0"
-                x-transition:leave="transition ease-in duration-150"
-                x-transition:leave-start="opacity-100 translate-x-0"
-                x-transition:leave-end="opacity-0 -translate-x-3"
+                x-transition:enter="transition ease-out duration-250"
+                x-transition:enter-start="opacity-0 -translate-x-4 scale-95"
+                x-transition:enter-end="opacity-100 translate-x-0 scale-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-x-0 scale-100"
+                x-transition:leave-end="opacity-0 -translate-x-4 scale-95"
             >
                 {{-- Ungrouped items (Dashboard, etc.) --}}
                 <ul class="flex flex-col gap-y-1">
@@ -292,12 +292,12 @@
                  ========================== --}}
             <div
                 x-show="view === 'detail'"
-                x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-x-3"
-                x-transition:enter-end="opacity-100 translate-x-0"
-                x-transition:leave="transition ease-in duration-150"
-                x-transition:leave-start="opacity-100 translate-x-0"
-                x-transition:leave-end="opacity-0 translate-x-3"
+                x-transition:enter="transition ease-out duration-250"
+                x-transition:enter-start="opacity-0 translate-x-4 scale-95"
+                x-transition:enter-end="opacity-100 translate-x-0 scale-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-x-0 scale-100"
+                x-transition:leave-end="opacity-0 translate-x-4 scale-95"
             >
                 {{-- Back button --}}
                 <button

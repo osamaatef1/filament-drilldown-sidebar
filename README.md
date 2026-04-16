@@ -34,8 +34,10 @@ composer require osamaatef/filament-drilldown-sidebar
 Publish the sidebar view:
 
 ```bash
-php artisan vendor:publish --tag=drilldown-sidebar-views
+php artisan vendor:publish --tag=drilldown-sidebar-views --force
 ```
+
+> **Important:** The `--force` flag is required because this plugin overrides Filament's default sidebar view. Without `--force`, Laravel will skip the publish if the file already exists (e.g., from Filament's own view or a previous installation).
 
 ## Usage
 
