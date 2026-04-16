@@ -212,12 +212,15 @@
                                     @php
                                         $groupButtonIcon = $group->getIcon() ?? collect($group->getItems())->first()?->getIcon();
                                     @endphp
-                                    <li class="fi-sidebar-group flex flex-col gap-y-1">
+                                    <li class="fi-sidebar-group flex flex-col gap-y-1 mt-2">
+                                        <p class="fi-sidebar-group-label text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-2 mb-1">
+                                            {{ $group->getLabel() }}
+                                        </p>
                                         <button
                                             type="button"
                                             x-on:click="goToGroup(@js($group->getLabel()))"
                                             @class([
-                                                'flex w-full items-center gap-x-3 rounded-lg px-2 py-2 text-sm font-medium transition duration-75 outline-none',
+                                                'flex w-full items-center gap-x-3 rounded-lg px-2 py-2.5 text-sm font-semibold transition duration-75 outline-none',
                                                 'hover:bg-gray-100 focus-visible:bg-gray-100 dark:hover:bg-white/5 dark:focus-visible:bg-white/5',
                                                 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-white/5' => $group->isActive(),
                                                 'text-gray-700 dark:text-gray-200' => ! $group->isActive(),
@@ -234,7 +237,7 @@
                                                 />
                                             @endif
                                             <span class="flex-1 truncate text-start">
-                                                {{ $group->getLabel() }}
+                                                Browse {{ $group->getLabel() }}
                                             </span>
                                             <x-filament::icon
                                                 :icon="$isRtl ? 'heroicon-m-chevron-left' : 'heroicon-m-chevron-right'"
@@ -300,14 +303,14 @@
                                 @php
                                     $detailIcon = $group->getIcon() ?? collect($group->getItems())->first()?->getIcon();
                                 @endphp
-                                <div class="flex items-center gap-x-3 px-2 pb-2">
+                                <div class="flex items-center gap-x-3 px-2 pb-3 pt-1">
                                     @if ($detailIcon)
                                         <x-filament::icon
                                             :icon="$detailIcon"
-                                            class="h-5 w-5 text-primary-500 dark:text-primary-400 shrink-0"
+                                            class="h-6 w-6 text-primary-500 dark:text-primary-400 shrink-0"
                                         />
                                     @endif
-                                    <h3 class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider">
+                                    <h3 class="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider">
                                         {{ $group->getLabel() }}
                                     </h3>
                                 </div>
