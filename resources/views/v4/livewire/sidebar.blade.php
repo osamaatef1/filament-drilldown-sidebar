@@ -237,7 +237,7 @@
                                                 />
                                             @endif
                                             <span class="flex-1 truncate text-start">
-                                                Browse {{ $group->getLabel() }}
+                                                {{ $group->getLabel() }}
                                             </span>
                                             <x-filament::icon
                                                 :icon="$isRtl ? 'heroicon-m-chevron-left' : 'heroicon-m-chevron-right'"
