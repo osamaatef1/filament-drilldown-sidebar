@@ -3,6 +3,8 @@
 namespace OsamaAtef\DrilldownSidebar;
 
 use Composer\InstalledVersions;
+use Filament\Support\Assets\Css;
+use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
 
 class DrilldownSidebarServiceProvider extends ServiceProvider
@@ -10,6 +12,10 @@ class DrilldownSidebarServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $majorVersion = $this->getFilamentMajorVersion();
+
+        FilamentAsset::register([
+            Css::make('drilldown-sidebar', __DIR__ . '/../resources/css/drilldown-sidebar.css'),
+        ], package: 'osamaatef/filament-drilldown-sidebar');
 
         if ($majorVersion >= 4) {
             $this->publishes([

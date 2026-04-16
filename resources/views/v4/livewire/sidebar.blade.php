@@ -16,13 +16,7 @@
                 && in_array($group->getLabel(), $drilledGroupLabels)
         );
 
-        $standardGroups = collect($navigation)->filter(
-            fn (\Filament\Navigation\NavigationGroup $group) =>
-                filled($group->getLabel()) && count($group->getItems()) > 0
-                && ! in_array($group->getLabel(), $drilledGroupLabels)
-        );
-
-        // Auto-drill only applies to drilldown groups
+        // Auto-drill to the active group on page load
         $activeNavGroup = $drilldownGroups
             ->first(fn (\Filament\Navigation\NavigationGroup $group): bool => $group->isActive() && filled($group->getLabel()));
         $activeGroupLabel = $activeNavGroup?->getLabel();
@@ -71,9 +65,7 @@
                     />
                 @endif
 
-                @if (defined('\Filament\View\PanelsRenderHook::SIDEBAR_LOGO_BEFORE'))
-                    {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_LOGO_BEFORE) }}
-                @endif
+                {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_LOGO_BEFORE) }}
 
                 <div
                     @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
@@ -90,9 +82,7 @@
                     @endif
                 </div>
 
-                @if (defined('\Filament\View\PanelsRenderHook::SIDEBAR_LOGO_AFTER'))
-                    {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_LOGO_AFTER) }}
-                @endif
+                {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_LOGO_AFTER) }}
             </header>
         </div>
 
@@ -155,22 +145,22 @@
                         this.view = 'main';
                     }
                 }"
-                class="-mx-2"
+                class="fi-dd-nav-wrapper"
             >
                 {{-- ========================
                      MAIN VIEW: group list
                      ======================== --}}
                 <div
                     x-show="view === 'main'"
-                    x-transition:enter="transition ease-out duration-250"
-                    x-transition:enter-start="opacity-0 -translate-x-4 scale-95"
-                    x-transition:enter-end="opacity-100 translate-x-0 scale-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 translate-x-0 scale-100"
-                    x-transition:leave-end="opacity-0 -translate-x-4 scale-95"
+                    x-transition:enter="fi-dd-main-enter"
+                    x-transition:enter-start="fi-dd-main-enter-start"
+                    x-transition:enter-end="fi-dd-main-enter-end"
+                    x-transition:leave="fi-dd-main-leave"
+                    x-transition:leave-start="fi-dd-main-leave-start"
+                    x-transition:leave-end="fi-dd-main-leave-end"
                 >
                     {{-- Ungrouped items (Dashboard, etc.) --}}
-                    <ul class="flex flex-col gap-y-1">
+                    <ul class="fi-sidebar-group-items">
                         @foreach ($navigation as $group)
                             @if (blank($group->getLabel()) && count($group->getItems()) > 0)
                                 @foreach ($group->getItems() as $item)
@@ -204,7 +194,7 @@
                     </ul>
 
                     {{-- Labeled groups: rendered in original order, each as drilldown or standard --}}
-                    <ul class="fi-sidebar-nav-groups flex flex-col gap-y-7">
+                    <ul class="fi-sidebar-nav-groups fi-dd-groups-list">
                         @foreach ($navigation as $group)
                             @if (filled($group->getLabel()) && count($group->getItems()) > 0)
                                 @if (in_array($group->getLabel(), $drilledGroupLabels))
@@ -212,36 +202,30 @@
                                     @php
                                         $groupButtonIcon = $group->getIcon() ?? collect($group->getItems())->first()?->getIcon();
                                     @endphp
-                                    <li class="fi-sidebar-group flex flex-col gap-y-1 mt-2">
-                                        <p class="fi-sidebar-group-label text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-2 mb-1">
+                                    <li class="fi-sidebar-group fi-dd-group">
+                                        <p class="fi-dd-group-label">
                                             {{ $group->getLabel() }}
                                         </p>
                                         <button
                                             type="button"
                                             x-on:click="goToGroup(@js($group->getLabel()))"
                                             @class([
-                                                'flex w-full items-center gap-x-3 rounded-lg px-2 py-2.5 text-sm font-semibold transition duration-75 outline-none',
-                                                'hover:bg-gray-100 focus-visible:bg-gray-100 dark:hover:bg-white/5 dark:focus-visible:bg-white/5',
-                                                'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-white/5' => $group->isActive(),
-                                                'text-gray-700 dark:text-gray-200' => ! $group->isActive(),
+                                                'fi-dd-group-btn',
+                                                'fi-active' => $group->isActive(),
                                             ])
                                         >
                                             @if ($groupButtonIcon)
                                                 <x-filament::icon
                                                     :icon="$groupButtonIcon"
-                                                    @class([
-                                                        'h-5 w-5 shrink-0',
-                                                        'text-primary-500 dark:text-primary-400' => $group->isActive(),
-                                                        'text-gray-400 dark:text-gray-500' => ! $group->isActive(),
-                                                    ])
+                                                    class="fi-dd-btn-icon"
                                                 />
                                             @endif
-                                            <span class="flex-1 truncate text-start">
+                                            <span class="fi-dd-btn-label">
                                                 {{ $group->getLabel() }}
                                             </span>
                                             <x-filament::icon
                                                 :icon="$isRtl ? 'heroicon-m-chevron-left' : 'heroicon-m-chevron-right'"
-                                                class="h-4 w-4 text-gray-400 dark:text-gray-500 shrink-0"
+                                                class="fi-dd-btn-chevron"
                                             />
                                         </button>
                                     </li>
@@ -269,22 +253,21 @@
                      ========================== --}}
                 <div
                     x-show="view === 'detail'"
-                    x-transition:enter="transition ease-out duration-250"
-                    x-transition:enter-start="opacity-0 translate-x-4 scale-95"
-                    x-transition:enter-end="opacity-100 translate-x-0 scale-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 translate-x-0 scale-100"
-                    x-transition:leave-end="opacity-0 translate-x-4 scale-95"
+                    x-transition:enter="fi-dd-detail-enter"
+                    x-transition:enter-start="fi-dd-detail-enter-start"
+                    x-transition:enter-end="fi-dd-detail-enter-end"
+                    x-transition:leave="fi-dd-detail-leave"
+                    x-transition:leave-start="fi-dd-detail-leave-start"
+                    x-transition:leave-end="fi-dd-detail-leave-end"
                 >
                     {{-- Back button --}}
                     <button
                         type="button"
                         x-on:click="goBack()"
-                        class="fi-sidebar-back-btn flex items-center gap-x-2 rounded-lg px-2 py-2 text-sm font-medium text-gray-500 transition duration-75 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200 w-full outline-none focus-visible:bg-gray-100 dark:focus-visible:bg-white/5"
+                        class="fi-dd-back-btn"
                     >
                         <x-filament::icon
                             :icon="$isRtl ? 'heroicon-m-chevron-right' : 'heroicon-m-chevron-left'"
-                            class="h-4 w-4"
                         />
                         <span>{{ __('Back') }}</span>
                     </button>
@@ -297,28 +280,28 @@
                             <div
                                 x-show="activeGroup === @js($group->getLabel())"
                                 x-cloak
-                                class="fi-sidebar-detail-panel mt-2"
+                                class="fi-dd-detail-panel"
                             >
                                 {{-- Group title --}}
                                 @php
                                     $detailIcon = $group->getIcon() ?? collect($group->getItems())->first()?->getIcon();
                                 @endphp
-                                <div class="flex items-center gap-x-3 px-2 pb-3 pt-1">
+                                <div class="fi-dd-detail-header">
                                     @if ($detailIcon)
                                         <x-filament::icon
                                             :icon="$detailIcon"
-                                            class="h-6 w-6 text-primary-500 dark:text-primary-400 shrink-0"
+                                            class="fi-dd-detail-icon"
                                         />
                                     @endif
-                                    <h3 class="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider">
+                                    <h3 class="fi-dd-detail-title">
                                         {{ $group->getLabel() }}
                                     </h3>
                                 </div>
 
-                                <hr class="border-primary-200 dark:border-primary-800 mx-1 mb-2" />
+                                <hr class="fi-dd-detail-divider" />
 
                                 {{-- Items --}}
-                                <ul class="flex flex-col gap-y-1">
+                                <ul class="fi-dd-detail-items">
                                     @php
                                         $groupIcon = $group->getIcon();
                                     @endphp
