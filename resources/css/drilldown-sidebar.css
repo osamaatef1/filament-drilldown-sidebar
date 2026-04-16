@@ -1,8 +1,10 @@
 /* ================================================================
    Filament Drilldown Sidebar Plugin — Component Styles
    Self-contained plain CSS (no Tailwind required).
-   Colors use Filament's CSS custom properties so they adapt to
-   whatever primary / gray palette the user configures.
+
+   Colors use the --primary-* and --gray-* CSS custom properties
+   injected by Filament's @filamentStyles directive, which works
+   across Filament v3, v4, and v5 regardless of Tailwind version.
    ================================================================ */
 
 /* ---------------------------------------------------------------
@@ -40,13 +42,13 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-gray-400);
+    color: var(--gray-400);
     padding-inline: 0.5rem;
     margin-bottom: 0.25rem;
 }
 
 :where(.dark, .dark *) .fi-dd-group-label {
-    color: var(--color-gray-500);
+    color: var(--gray-500);
 }
 
 /* ---------------------------------------------------------------
@@ -64,7 +66,7 @@
     transition-property: color, background-color, border-color;
     transition-duration: 75ms;
     outline: none;
-    color: var(--color-gray-700);
+    color: var(--gray-700);
     background: transparent;
     border: none;
     cursor: pointer;
@@ -72,12 +74,12 @@
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn {
-    color: var(--color-gray-200);
+    color: var(--gray-200);
 }
 
 .fi-dd-group-btn:hover,
 .fi-dd-group-btn:focus-visible {
-    background-color: var(--color-gray-100);
+    background-color: var(--gray-100);
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn:hover,
@@ -86,12 +88,12 @@
 }
 
 .fi-dd-group-btn.fi-active {
-    color: var(--color-primary-600);
-    background-color: var(--color-primary-50);
+    color: var(--primary-600);
+    background-color: var(--primary-50);
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn.fi-active {
-    color: var(--color-primary-400);
+    color: var(--primary-400);
     background-color: rgb(255 255 255 / 0.05);
 }
 
@@ -100,19 +102,19 @@
     flex-shrink: 0;
     height: 1.25rem;
     width: 1.25rem;
-    color: var(--color-gray-400);
+    color: var(--gray-400);
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn .fi-dd-btn-icon {
-    color: var(--color-gray-500);
+    color: var(--gray-500);
 }
 
 .fi-dd-group-btn.fi-active .fi-dd-btn-icon {
-    color: var(--color-primary-500);
+    color: var(--primary-500);
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn.fi-active .fi-dd-btn-icon {
-    color: var(--color-primary-400);
+    color: var(--primary-400);
 }
 
 /* Label text inside drilldown button */
@@ -129,11 +131,11 @@
     flex-shrink: 0;
     height: 1rem;
     width: 1rem;
-    color: var(--color-gray-400);
+    color: var(--gray-400);
 }
 
 :where(.dark, .dark *) .fi-dd-group-btn .fi-dd-btn-chevron {
-    color: var(--color-gray-500);
+    color: var(--gray-500);
 }
 
 /* ---------------------------------------------------------------
@@ -147,7 +149,7 @@
     padding: 0.5rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--color-gray-500);
+    color: var(--gray-500);
     transition-property: color, background-color;
     transition-duration: 75ms;
     width: 100%;
@@ -159,19 +161,19 @@
 }
 
 :where(.dark, .dark *) .fi-dd-back-btn {
-    color: var(--color-gray-400);
+    color: var(--gray-400);
 }
 
 .fi-dd-back-btn:hover,
 .fi-dd-back-btn:focus-visible {
-    background-color: var(--color-gray-100);
-    color: var(--color-gray-700);
+    background-color: var(--gray-100);
+    color: var(--gray-700);
 }
 
 :where(.dark, .dark *) .fi-dd-back-btn:hover,
 :where(.dark, .dark *) .fi-dd-back-btn:focus-visible {
     background-color: rgb(255 255 255 / 0.05);
-    color: var(--color-gray-200);
+    color: var(--gray-200);
 }
 
 /* ---------------------------------------------------------------
@@ -194,11 +196,11 @@
     height: 1.5rem;
     width: 1.5rem;
     flex-shrink: 0;
-    color: var(--color-primary-500);
+    color: var(--primary-500);
 }
 
 :where(.dark, .dark *) .fi-dd-detail-icon {
-    color: var(--color-primary-400);
+    color: var(--primary-400);
 }
 
 .fi-dd-detail-title {
@@ -206,21 +208,21 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-primary-600);
+    color: var(--primary-600);
 }
 
 :where(.dark, .dark *) .fi-dd-detail-title {
-    color: var(--color-primary-400);
+    color: var(--primary-400);
 }
 
 .fi-dd-detail-divider {
-    border-color: var(--color-primary-200);
+    border-color: var(--primary-200);
     margin-inline: 0.25rem;
     margin-bottom: 0.5rem;
 }
 
 :where(.dark, .dark *) .fi-dd-detail-divider {
-    border-color: var(--color-primary-800);
+    border-color: var(--primary-800);
 }
 
 .fi-dd-detail-items {
