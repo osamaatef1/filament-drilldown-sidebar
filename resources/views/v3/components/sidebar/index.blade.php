@@ -460,6 +460,9 @@
                                             $itemIcon = null;
                                             $itemActiveIcon = null;
                                         }
+                                        $itemXShow = $searchEnabled
+                                            ? "search === '' || '" . addslashes(strtolower($item->getLabel())) . "'.includes(search.toLowerCase())"
+                                            : 'true';
                                     @endphp
                                     <x-filament-panels::sidebar.item
                                         :active="$item->isActive()"
@@ -476,9 +479,7 @@
                                         :should-open-url-in-new-tab="$item->shouldOpenUrlInNewTab()"
                                         :sidebar-collapsible="false"
                                         :url="$item->getUrl()"
-                                        @if ($searchEnabled)
-                                            x-show="search === '' || '{{ strtolower($item->getLabel()) }}'.includes(search.toLowerCase())"
-                                        @endif
+                                        x-show="{{ $itemXShow }}"
                                     >
                                         {{ $item->getLabel() }}
 
@@ -581,6 +582,9 @@
                                                 $itemIcon = null;
                                                 $itemActiveIcon = null;
                                             }
+                                            $itemXShow = $searchEnabled
+                                                ? "search === '' || '" . addslashes(strtolower($item->getLabel())) . "'.includes(search.toLowerCase())"
+                                                : 'true';
                                         @endphp
                                         <x-filament-panels::sidebar.item
                                             :active="$item->isActive()"
@@ -597,9 +601,7 @@
                                             :should-open-url-in-new-tab="$item->shouldOpenUrlInNewTab()"
                                             :sidebar-collapsible="false"
                                             :url="$item->getUrl()"
-                                            @if ($searchEnabled)
-                                                x-show="search === '' || '{{ strtolower($item->getLabel()) }}'.includes(search.toLowerCase())"
-                                            @endif
+                                            x-show="{{ $itemXShow }}"
                                         >
                                             {{ $item->getLabel() }}
 
