@@ -9,9 +9,14 @@
 
     // Groups marked as drilled via DrilldownSidebarPlugin get drill-down navigation
     try {
-        $drilledGroupLabels = filament('drilldown-sidebar')?->getDrilledGroups() ?? [];
+        $plugin            = filament('drilldown-sidebar');
+        $drilledGroupLabels = $plugin?->getDrilledGroups() ?? [];
+        $subGroupsMap      = $plugin?->getSubGroups() ?? [];
+        $searchEnabled     = $plugin?->isSearchEnabled() ?? false;
     } catch (\Exception $e) {
         $drilledGroupLabels = [];
+        $subGroupsMap       = [];
+        $searchEnabled      = false;
     }
 
     $drilldownGroups = collect($navigation)->filter(
@@ -26,10 +31,29 @@
             && ! in_array($group->getLabel(), $drilledGroupLabels)
     );
 
-    // Auto-drill only applies to drilldown groups
+    // Build a quick label → NavigationGroup lookup for sub-group rendering
+    $navigationByLabel = collect($navigation)->keyBy(fn ($g) => $g->getLabel());
+
+    // Collect all child group labels (excluded from the main detail flat list)
+    $allChildGroupLabels = collect($subGroupsMap)->flatten()->all();
+
+    // Auto-drill: detect if the active page belongs to a drilled group or sub-group
     $activeNavGroup = $drilldownGroups
         ->first(fn (\Filament\Navigation\NavigationGroup $group): bool => $group->isActive() && filled($group->getLabel()));
     $activeGroupLabel = $activeNavGroup?->getLabel();
+
+    // Check if the active page is inside a sub-group
+    $activeSubGroupLabel = null;
+    foreach ($subGroupsMap as $parentLabel => $childLabels) {
+        foreach ($childLabels as $childLabel) {
+            $childNavGroup = $navigationByLabel->get($childLabel);
+            if ($childNavGroup?->isActive()) {
+                $activeGroupLabel    = $parentLabel;
+                $activeSubGroupLabel = $childLabel;
+                break 2;
+            }
+        }
+    }
 @endphp
 
 {{-- format-ignore-start --}}
@@ -173,14 +197,30 @@
                 x-transition:enter-end="opacity-100"
             @endif
             x-data="{
-                view: @js($activeGroupLabel ? 'detail' : 'main'),
+                view: @js($activeSubGroupLabel ? 'subDetail' : ($activeGroupLabel ? 'detail' : 'main')),
                 activeGroup: @js($activeGroupLabel),
+                activeSubGroup: @js($activeSubGroupLabel),
+                search: '',
                 goToGroup(label) {
                     this.activeGroup = label;
+                    this.activeSubGroup = null;
+                    this.search = '';
                     this.view = 'detail';
                 },
+                goToSubGroup(label) {
+                    this.activeSubGroup = label;
+                    this.search = '';
+                    this.view = 'subDetail';
+                },
                 goBack() {
+                    this.search = '';
+                    this.activeGroup = null;
                     this.view = 'main';
+                },
+                goBackToGroup() {
+                    this.search = '';
+                    this.activeSubGroup = null;
+                    this.view = 'detail';
                 }
             }"
             class="-mx-2"
@@ -231,8 +271,6 @@
                     @endforeach
                 </ul>
 
-                {{-- Spacing after ungrouped items --}}
-
                 {{-- Labeled groups: rendered in original order, each as drilldown or standard --}}
                 <ul class="fi-sidebar-nav-groups flex flex-col gap-y-7">
                     @foreach ($navigation as $group)
@@ -275,8 +313,8 @@
                                         />
                                     </button>
                                 </li>
-                            @else
-                                {{-- Standard collapsible group --}}
+                            @elseif (! in_array($group->getLabel(), $allChildGroupLabels))
+                                {{-- Standard collapsible group (skip child groups — they render inside sub-detail) --}}
                                 @php
                                     $hasItemIcons = collect($group->getItems())->contains(fn ($item) => filled($item->getIcon()));
                                 @endphp
@@ -304,7 +342,7 @@
                 x-transition:enter-end="opacity-100 translate-x-0 scale-100"
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-x-0 scale-100"
-                x-transition:leave-end="opacity-0 translate-x-4 scale-95"
+                x-transition:leave-end="opacity-0 -translate-x-4 scale-95"
             >
                 {{-- Back button --}}
                 <button
@@ -324,15 +362,16 @@
                     @if (filled($group->getLabel())
                         && count($group->getItems()) > 0
                         && in_array($group->getLabel(), $drilledGroupLabels))
+                        @php
+                            $detailIcon = $group->getIcon() ?? collect($group->getItems())->first()?->getIcon();
+                            $groupSubChildren = $subGroupsMap[$group->getLabel()] ?? [];
+                        @endphp
                         <div
                             x-show="activeGroup === @js($group->getLabel())"
                             x-cloak
                             class="fi-sidebar-detail-panel mt-2"
                         >
                             {{-- Group title --}}
-                            @php
-                                $detailIcon = $group->getIcon() ?? collect($group->getItems())->first()?->getIcon();
-                            @endphp
                             <div class="flex items-center gap-x-3 px-2 pb-3 pt-1">
                                 @if ($detailIcon)
                                     <x-filament::icon
@@ -347,7 +386,67 @@
 
                             <hr class="border-primary-200 dark:border-primary-800 mx-1 mb-3" />
 
-                            {{-- Items --}}
+                            {{-- Search input (when enabled) --}}
+                            @if ($searchEnabled)
+                                <div class="px-2 pb-3">
+                                    <input
+                                        type="text"
+                                        x-model="search"
+                                        placeholder="{{ __('Search...') }}"
+                                        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-500"
+                                    />
+                                </div>
+                            @endif
+
+                            {{-- Sub-group buttons (if this drilled group has nested sub-groups configured) --}}
+                            @if (count($groupSubChildren) > 0)
+                                <ul class="flex flex-col gap-y-1 mb-3">
+                                    @foreach ($groupSubChildren as $childLabel)
+                                        @php
+                                            $childNavGroup = $navigationByLabel->get($childLabel);
+                                        @endphp
+                                        @if ($childNavGroup && count($childNavGroup->getItems()) > 0)
+                                            @php
+                                                $childIcon = $childNavGroup->getIcon() ?? collect($childNavGroup->getItems())->first()?->getIcon();
+                                            @endphp
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    x-on:click="goToSubGroup(@js($childLabel))"
+                                                    @class([
+                                                        'flex w-full items-center gap-x-3 rounded-lg px-2 py-2.5 text-sm font-semibold transition duration-75 outline-none',
+                                                        'hover:bg-gray-100 focus-visible:bg-gray-100 dark:hover:bg-white/5 dark:focus-visible:bg-white/5',
+                                                        'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-white/5' => $childNavGroup->isActive(),
+                                                        'text-gray-700 dark:text-gray-200' => ! $childNavGroup->isActive(),
+                                                    ])
+                                                >
+                                                    @if ($childIcon)
+                                                        <x-filament::icon
+                                                            :icon="$childIcon"
+                                                            @class([
+                                                                'h-5 w-5 shrink-0',
+                                                                'text-primary-500 dark:text-primary-400' => $childNavGroup->isActive(),
+                                                                'text-gray-400 dark:text-gray-500' => ! $childNavGroup->isActive(),
+                                                            ])
+                                                        />
+                                                    @endif
+                                                    <span class="flex-1 truncate text-start">{{ $childLabel }}</span>
+                                                    <x-filament::icon
+                                                        :icon="$isRtl ? 'heroicon-m-chevron-left' : 'heroicon-m-chevron-right'"
+                                                        class="h-4 w-4 text-gray-400 dark:text-gray-500 shrink-0"
+                                                    />
+                                                </button>
+                                            </li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+
+                                @if (count($group->getItems()) > 0)
+                                    <hr class="border-gray-100 dark:border-white/5 mx-1 mb-3" />
+                                @endif
+                            @endif
+
+                            {{-- Direct items (flat items not belonging to a sub-group) --}}
                             <ul class="flex flex-col gap-y-1">
                                 @php
                                     $groupIcon = $group->getIcon();
@@ -362,40 +461,171 @@
                                             $itemActiveIcon = null;
                                         }
                                     @endphp
-                                    <x-filament-panels::sidebar.item
-                                        :active="$item->isActive()"
-                                        :active-child-items="$item->isChildItemsActive()"
-                                        :active-icon="$itemActiveIcon"
-                                        :badge="$item->getBadge()"
-                                        :badge-color="$item->getBadgeColor()"
-                                        :badge-tooltip="$item->getBadgeTooltip()"
-                                        :child-items="$item->getChildItems()"
-                                        :first="$loop->first"
-                                        :grouped="true"
-                                        :icon="$itemIcon"
-                                        :last="$loop->last"
-                                        :should-open-url-in-new-tab="$item->shouldOpenUrlInNewTab()"
-                                        :sidebar-collapsible="false"
-                                        :url="$item->getUrl()"
+                                    <li
+                                        @if ($searchEnabled)
+                                            x-show="search === '' || '{{ strtolower($item->getLabel()) }}'.includes(search.toLowerCase())"
+                                        @endif
                                     >
-                                        {{ $item->getLabel() }}
+                                        <x-filament-panels::sidebar.item
+                                            :active="$item->isActive()"
+                                            :active-child-items="$item->isChildItemsActive()"
+                                            :active-icon="$itemActiveIcon"
+                                            :badge="$item->getBadge()"
+                                            :badge-color="$item->getBadgeColor()"
+                                            :badge-tooltip="$item->getBadgeTooltip()"
+                                            :child-items="$item->getChildItems()"
+                                            :first="$loop->first"
+                                            :grouped="true"
+                                            :icon="$itemIcon"
+                                            :last="$loop->last"
+                                            :should-open-url-in-new-tab="$item->shouldOpenUrlInNewTab()"
+                                            :sidebar-collapsible="false"
+                                            :url="$item->getUrl()"
+                                        >
+                                            {{ $item->getLabel() }}
 
-                                        @if ($itemIcon instanceof \Illuminate\Contracts\Support\Htmlable)
-                                            <x-slot name="icon">
-                                                {{ $itemIcon }}
-                                            </x-slot>
-                                        @endif
+                                            @if ($itemIcon instanceof \Illuminate\Contracts\Support\Htmlable)
+                                                <x-slot name="icon">
+                                                    {{ $itemIcon }}
+                                                </x-slot>
+                                            @endif
 
-                                        @if ($itemActiveIcon instanceof \Illuminate\Contracts\Support\Htmlable)
-                                            <x-slot name="activeIcon">
-                                                {{ $itemActiveIcon }}
-                                            </x-slot>
-                                        @endif
-                                    </x-filament-panels::sidebar.item>
+                                            @if ($itemActiveIcon instanceof \Illuminate\Contracts\Support\Htmlable)
+                                                <x-slot name="activeIcon">
+                                                    {{ $itemActiveIcon }}
+                                                </x-slot>
+                                            @endif
+                                        </x-filament-panels::sidebar.item>
+                                    </li>
                                 @endforeach
                             </ul>
                         </div>
                     @endif
+                @endforeach
+            </div>
+
+            {{-- ================================
+                 SUB-DETAIL VIEW: sub-group items
+                 ================================ --}}
+            <div
+                x-show="view === 'subDetail'"
+                x-transition:enter="transition ease-out duration-250"
+                x-transition:enter-start="opacity-0 translate-x-4 scale-95"
+                x-transition:enter-end="opacity-100 translate-x-0 scale-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-x-0 scale-100"
+                x-transition:leave-end="opacity-0 -translate-x-4 scale-95"
+            >
+                {{-- Back to parent group --}}
+                <button
+                    type="button"
+                    x-on:click="goBackToGroup()"
+                    class="fi-sidebar-back-btn flex items-center gap-x-2 rounded-lg px-2 py-2 text-sm font-medium text-gray-500 transition duration-75 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200 w-full outline-none focus-visible:bg-gray-100 dark:focus-visible:bg-white/5"
+                >
+                    <x-filament::icon
+                        :icon="$isRtl ? 'heroicon-m-chevron-right' : 'heroicon-m-chevron-left'"
+                        class="h-4 w-4"
+                    />
+                    <span x-text="activeGroup"></span>
+                </button>
+
+                {{-- Sub-group panels --}}
+                @foreach ($subGroupsMap as $parentLabel => $childLabels)
+                    @foreach ($childLabels as $childLabel)
+                        @php
+                            $subNavGroup = $navigationByLabel->get($childLabel);
+                        @endphp
+                        @if ($subNavGroup && count($subNavGroup->getItems()) > 0)
+                            @php
+                                $subDetailIcon = $subNavGroup->getIcon() ?? collect($subNavGroup->getItems())->first()?->getIcon();
+                            @endphp
+                            <div
+                                x-show="activeSubGroup === @js($childLabel)"
+                                x-cloak
+                                class="fi-sidebar-subdetail-panel mt-2"
+                            >
+                                {{-- Sub-group title --}}
+                                <div class="flex items-center gap-x-3 px-2 pb-3 pt-1">
+                                    @if ($subDetailIcon)
+                                        <x-filament::icon
+                                            :icon="$subDetailIcon"
+                                            class="h-6 w-6 text-primary-500 dark:text-primary-400 shrink-0"
+                                        />
+                                    @endif
+                                    <h3 class="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider">
+                                        {{ $childLabel }}
+                                    </h3>
+                                </div>
+
+                                <hr class="border-primary-200 dark:border-primary-800 mx-1 mb-3" />
+
+                                {{-- Search input (when enabled) --}}
+                                @if ($searchEnabled)
+                                    <div class="px-2 pb-3">
+                                        <input
+                                            type="text"
+                                            x-model="search"
+                                            placeholder="{{ __('Search...') }}"
+                                            class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-500"
+                                        />
+                                    </div>
+                                @endif
+
+                                {{-- Items --}}
+                                <ul class="flex flex-col gap-y-1">
+                                    @php
+                                        $subGroupIcon = $subNavGroup->getIcon();
+                                    @endphp
+                                    @foreach ($subNavGroup->getItems() as $item)
+                                        @php
+                                            $itemIcon = $item->getIcon();
+                                            $itemActiveIcon = $item->getActiveIcon();
+                                            if ($subGroupIcon) {
+                                                $itemIcon = null;
+                                                $itemActiveIcon = null;
+                                            }
+                                        @endphp
+                                        <li
+                                            @if ($searchEnabled)
+                                                x-show="search === '' || '{{ strtolower($item->getLabel()) }}'.includes(search.toLowerCase())"
+                                            @endif
+                                        >
+                                            <x-filament-panels::sidebar.item
+                                                :active="$item->isActive()"
+                                                :active-child-items="$item->isChildItemsActive()"
+                                                :active-icon="$itemActiveIcon"
+                                                :badge="$item->getBadge()"
+                                                :badge-color="$item->getBadgeColor()"
+                                                :badge-tooltip="$item->getBadgeTooltip()"
+                                                :child-items="$item->getChildItems()"
+                                                :first="$loop->first"
+                                                :grouped="true"
+                                                :icon="$itemIcon"
+                                                :last="$loop->last"
+                                                :should-open-url-in-new-tab="$item->shouldOpenUrlInNewTab()"
+                                                :sidebar-collapsible="false"
+                                                :url="$item->getUrl()"
+                                            >
+                                                {{ $item->getLabel() }}
+
+                                                @if ($itemIcon instanceof \Illuminate\Contracts\Support\Htmlable)
+                                                    <x-slot name="icon">
+                                                        {{ $itemIcon }}
+                                                    </x-slot>
+                                                @endif
+
+                                                @if ($itemActiveIcon instanceof \Illuminate\Contracts\Support\Htmlable)
+                                                    <x-slot name="activeIcon">
+                                                        {{ $itemActiveIcon }}
+                                                    </x-slot>
+                                                @endif
+                                            </x-filament-panels::sidebar.item>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                    @endforeach
                 @endforeach
             </div>
         </div>
