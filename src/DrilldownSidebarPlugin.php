@@ -167,6 +167,52 @@ class DrilldownSidebarPlugin implements Plugin
             }
         }
 
+        return $this->sortSubGroupsByPanelOrder($panel, $map);
+    }
+
+    /**
+     * Sort each parent's children by their position in the panel's
+     * ->navigationGroups([...]) array so the drill-detail renders them
+     * in the order the developer already declared.
+     *
+     * Labels not present in navigationGroups() fall to the end.
+     *
+     * @param  array<string, array<string>>  $map
+     * @return array<string, array<string>>
+     */
+    protected function sortSubGroupsByPanelOrder(Panel $panel, array $map): array
+    {
+        $groupOrder = collect($panel->getNavigationGroups())
+            ->map(function ($group) {
+                if (is_string($group)) {
+                    return $group;
+                }
+
+                if (is_object($group) && method_exists($group, 'getLabel')) {
+                    return $group->getLabel();
+                }
+
+                return null;
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        if (empty($groupOrder)) {
+            return $map;
+        }
+
+        $orderIndex = array_flip($groupOrder);
+
+        foreach ($map as $parent => &$children) {
+            usort($children, function (string $a, string $b) use ($orderIndex) {
+                $ai = $orderIndex[$a] ?? PHP_INT_MAX;
+                $bi = $orderIndex[$b] ?? PHP_INT_MAX;
+
+                return $ai <=> $bi;
+            });
+        }
+
         return $map;
     }
 }
