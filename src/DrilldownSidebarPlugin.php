@@ -113,10 +113,11 @@ class DrilldownSidebarPlugin implements Plugin
     }
 
     /**
-     * Scan registered panel resources for a static `$navigationParentGroup`
-     * property and build the [parent => [children]] map from it.
+     * Scan registered panel resources and pages for a static
+     * `$navigationParentGroup` property and build the [parent => [children]]
+     * map from it.
      *
-     * Resources opt into nesting declaratively:
+     * Resources and pages opt into nesting declaratively:
      *
      *     protected static ?string $navigationGroup = 'Activities';
      *     protected static ?string $navigationParentGroup = 'Lighthouse';
@@ -132,10 +133,11 @@ class DrilldownSidebarPlugin implements Plugin
         }
 
         $map = [];
+        $classes = [...$panel->getResources(), ...$panel->getPages()];
 
-        foreach ($panel->getResources() as $resourceClass) {
+        foreach ($classes as $class) {
             try {
-                $ref = new ReflectionClass($resourceClass);
+                $ref = new ReflectionClass($class);
 
                 if (! $ref->hasProperty('navigationParentGroup')) {
                     continue;
@@ -149,7 +151,7 @@ class DrilldownSidebarPlugin implements Plugin
                     continue;
                 }
 
-                $child = $resourceClass::getNavigationGroup();
+                $child = $class::getNavigationGroup();
 
                 if (! $child) {
                     continue;
@@ -161,7 +163,7 @@ class DrilldownSidebarPlugin implements Plugin
                     $map[$parent][] = $child;
                 }
             } catch (\Throwable) {
-                // Ignore resources that fail reflection (e.g. abstract, missing)
+                // Ignore classes that fail reflection (e.g. abstract, missing)
             }
         }
 
