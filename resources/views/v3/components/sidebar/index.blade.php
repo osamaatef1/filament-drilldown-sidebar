@@ -55,6 +55,48 @@
         ->flatten()
         ->all();
 
+    // Virtual drilled parents: drilled labels that aren't present in $navigation (because
+    // no resource uses that label as its direct $navigationGroup) but have sub-groups defined.
+    // These still need to render as drill buttons so the user can reach the nested children.
+    $navigationLabels = collect($navigation)
+        ->map(fn ($g) => $g->getLabel())
+        ->filter()
+        ->all();
+
+    $virtualDrilledLabels = collect($drilledGroupLabels)
+        ->filter(fn ($label) => ! in_array($label, $navigationLabels) && ! empty($subGroupsMap[$label] ?? []))
+        ->values()
+        ->all();
+
+    // Resolve an icon for a drilled group, falling back to its first sub-group when the
+    // group itself is virtual/empty.
+    $resolveGroupIcon = function (?string $label) use ($navigationByLabel, $subGroupsMap) {
+        if (! $label) {
+            return null;
+        }
+
+        $navGroup = $navigationByLabel->get($label);
+        if ($icon = $navGroup?->getIcon() ?? collect($navGroup?->getItems() ?? [])->first()?->getIcon()) {
+            return $icon;
+        }
+
+        $firstChildLabel = collect($subGroupsMap[$label] ?? [])->first();
+        if (! $firstChildLabel) {
+            return null;
+        }
+
+        $childNavGroup = $navigationByLabel->get($firstChildLabel);
+
+        return $childNavGroup?->getIcon()
+            ?? collect($childNavGroup?->getItems() ?? [])->first()?->getIcon();
+    };
+
+    // Is any child of a virtual drilled parent currently active?
+    $virtualDrilledIsActive = function (string $label) use ($navigationByLabel, $subGroupsMap) {
+        return collect($subGroupsMap[$label] ?? [])
+            ->contains(fn ($child) => $navigationByLabel->get($child)?->isActive() ?? false);
+    };
+
     // Auto-drill: detect if the active page belongs to a drilled group or any of its sub-groups
     $activeNavGroup = $drilldownGroups
         ->first(fn (\Filament\Navigation\NavigationGroup $group): bool => $group->isActive() && filled($group->getLabel()));
@@ -278,60 +320,103 @@
                 {{-- Labeled groups: rendered in original order, each as drilldown or standard --}}
                 <ul class="fi-sidebar-nav-groups flex flex-col gap-y-7">
                     @foreach ($navigation as $group)
-                        @if (filled($group->getLabel()) && count($group->getItems()) > 0)
-                            @if (in_array($group->getLabel(), $drilledGroupLabels))
-                                {{-- Drilldown group: clickable button with chevron --}}
-                                @php
-                                    $groupButtonIcon = $group->getIcon() ?? collect($group->getItems())->first()?->getIcon();
-                                @endphp
-                                <li class="fi-sidebar-group flex flex-col gap-y-1 mt-2">
-                                    <p class="fi-sidebar-group-label text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-2 mb-1">
-                                        {{ $group->getLabel() }}
-                                    </p>
-                                    <button
-                                        type="button"
-                                        x-on:click="goToGroup(@js($group->getLabel()))"
-                                        @class([
-                                            'flex w-full items-center gap-x-3 rounded-lg px-2 py-2.5 text-sm font-semibold transition duration-75 outline-none',
-                                            'hover:bg-gray-100 focus-visible:bg-gray-100 dark:hover:bg-white/5 dark:focus-visible:bg-white/5',
-                                            'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-white/5' => $group->isActive(),
-                                            'text-gray-700 dark:text-gray-200' => ! $group->isActive(),
-                                        ])
-                                    >
-                                        @if ($groupButtonIcon)
-                                            <x-filament::icon
-                                                :icon="$groupButtonIcon"
-                                                @class([
-                                                    'h-5 w-5 shrink-0',
-                                                    'text-primary-500 dark:text-primary-400' => $group->isActive(),
-                                                    'text-gray-400 dark:text-gray-500' => ! $group->isActive(),
-                                                ])
-                                            />
-                                        @endif
-                                        <span class="flex-1 truncate text-start">
-                                            {{ $group->getLabel() }}
-                                        </span>
+                        @php
+                            $groupLabel = $group->getLabel();
+                            $groupIsDrilled = filled($groupLabel) && in_array($groupLabel, $drilledGroupLabels);
+                            $groupHasItems = count($group->getItems()) > 0;
+                            $groupHasSubGroups = filled($groupLabel) && ! empty($subGroupsMap[$groupLabel] ?? []);
+                        @endphp
+                        @if (filled($groupLabel) && $groupIsDrilled && ($groupHasItems || $groupHasSubGroups))
+                            {{-- Drilldown group: clickable button with chevron --}}
+                            @php
+                                $groupButtonIcon = $resolveGroupIcon($groupLabel);
+                            @endphp
+                            <li class="fi-sidebar-group flex flex-col gap-y-1 mt-2">
+                                <p class="fi-sidebar-group-label text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-2 mb-1">
+                                    {{ $groupLabel }}
+                                </p>
+                                <button
+                                    type="button"
+                                    x-on:click="goToGroup(@js($groupLabel))"
+                                    @class([
+                                        'flex w-full items-center gap-x-3 rounded-lg px-2 py-2.5 text-sm font-semibold transition duration-75 outline-none',
+                                        'hover:bg-gray-100 focus-visible:bg-gray-100 dark:hover:bg-white/5 dark:focus-visible:bg-white/5',
+                                        'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-white/5' => $group->isActive(),
+                                        'text-gray-700 dark:text-gray-200' => ! $group->isActive(),
+                                    ])
+                                >
+                                    @if ($groupButtonIcon)
                                         <x-filament::icon
-                                            :icon="$isRtl ? 'heroicon-m-chevron-left' : 'heroicon-m-chevron-right'"
-                                            class="h-4 w-4 text-gray-400 dark:text-gray-500 shrink-0"
+                                            :icon="$groupButtonIcon"
+                                            @class([
+                                                'h-5 w-5 shrink-0',
+                                                'text-primary-500 dark:text-primary-400' => $group->isActive(),
+                                                'text-gray-400 dark:text-gray-500' => ! $group->isActive(),
+                                            ])
                                         />
-                                    </button>
-                                </li>
-                            @elseif (! in_array($group->getLabel(), $allChildGroupLabels))
-                                {{-- Standard collapsible group (skip child groups — they render inside sub-detail) --}}
-                                @php
-                                    $hasItemIcons = collect($group->getItems())->contains(fn ($item) => filled($item->getIcon()));
-                                @endphp
-                                <x-filament-panels::sidebar.group
-                                    :active="$group->isActive()"
-                                    :collapsible="$group->isCollapsible()"
-                                    :icon="$hasItemIcons ? null : $group->getIcon()"
-                                    :items="$group->getItems()"
-                                    :label="$group->getLabel()"
-                                    :attributes="\Filament\Support\prepare_inherited_attributes($group->getExtraSidebarAttributeBag())"
-                                />
-                            @endif
+                                    @endif
+                                    <span class="flex-1 truncate text-start">
+                                        {{ $groupLabel }}
+                                    </span>
+                                    <x-filament::icon
+                                        :icon="$isRtl ? 'heroicon-m-chevron-left' : 'heroicon-m-chevron-right'"
+                                        class="h-4 w-4 text-gray-400 dark:text-gray-500 shrink-0"
+                                    />
+                                </button>
+                            </li>
+                        @elseif (filled($groupLabel) && $groupHasItems && ! $groupIsDrilled && ! in_array($groupLabel, $allChildGroupLabels))
+                            {{-- Standard collapsible group (skip child groups — they render inside the drilled detail) --}}
+                            @php
+                                $hasItemIcons = collect($group->getItems())->contains(fn ($item) => filled($item->getIcon()));
+                            @endphp
+                            <x-filament-panels::sidebar.group
+                                :active="$group->isActive()"
+                                :collapsible="$group->isCollapsible()"
+                                :icon="$hasItemIcons ? null : $group->getIcon()"
+                                :items="$group->getItems()"
+                                :label="$groupLabel"
+                                :attributes="\Filament\Support\prepare_inherited_attributes($group->getExtraSidebarAttributeBag())"
+                            />
                         @endif
+                    @endforeach
+
+                    {{-- Virtual drill buttons: drilled labels not present in $navigation (all content lives in sub-groups) --}}
+                    @foreach ($virtualDrilledLabels as $virtualLabel)
+                        @php
+                            $virtualIsActive = $virtualDrilledIsActive($virtualLabel);
+                            $virtualIcon = $resolveGroupIcon($virtualLabel);
+                        @endphp
+                        <li class="fi-sidebar-group flex flex-col gap-y-1 mt-2">
+                            <p class="fi-sidebar-group-label text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-2 mb-1">
+                                {{ $virtualLabel }}
+                            </p>
+                            <button
+                                type="button"
+                                x-on:click="goToGroup(@js($virtualLabel))"
+                                @class([
+                                    'flex w-full items-center gap-x-3 rounded-lg px-2 py-2.5 text-sm font-semibold transition duration-75 outline-none',
+                                    'hover:bg-gray-100 focus-visible:bg-gray-100 dark:hover:bg-white/5 dark:focus-visible:bg-white/5',
+                                    'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-white/5' => $virtualIsActive,
+                                    'text-gray-700 dark:text-gray-200' => ! $virtualIsActive,
+                                ])
+                            >
+                                @if ($virtualIcon)
+                                    <x-filament::icon
+                                        :icon="$virtualIcon"
+                                        @class([
+                                            'h-5 w-5 shrink-0',
+                                            'text-primary-500 dark:text-primary-400' => $virtualIsActive,
+                                            'text-gray-400 dark:text-gray-500' => ! $virtualIsActive,
+                                        ])
+                                    />
+                                @endif
+                                <span class="flex-1 truncate text-start">{{ $virtualLabel }}</span>
+                                <x-filament::icon
+                                    :icon="$isRtl ? 'heroicon-m-chevron-left' : 'heroicon-m-chevron-right'"
+                                    class="h-4 w-4 text-gray-400 dark:text-gray-500 shrink-0"
+                                />
+                            </button>
+                        </li>
                     @endforeach
                 </ul>
             </div>
@@ -350,15 +435,19 @@
             >
                 {{-- Group detail panels (drilldown groups only) --}}
                 @foreach ($navigation as $group)
-                    @if (filled($group->getLabel())
-                        && count($group->getItems()) > 0
-                        && in_array($group->getLabel(), $drilledGroupLabels))
+                    @php
+                        $detailGroupLabel = $group->getLabel();
+                        $detailGroupIsDrilled = filled($detailGroupLabel) && in_array($detailGroupLabel, $drilledGroupLabels);
+                        $detailGroupHasItems = count($group->getItems()) > 0;
+                        $detailGroupHasSubs = filled($detailGroupLabel) && ! empty($subGroupsMap[$detailGroupLabel] ?? []);
+                    @endphp
+                    @if ($detailGroupIsDrilled && ($detailGroupHasItems || $detailGroupHasSubs))
                         @php
-                            $detailIcon = $group->getIcon() ?? collect($group->getItems())->first()?->getIcon();
-                            $groupSubChildren = $subGroupsMap[$group->getLabel()] ?? [];
+                            $detailIcon = $resolveGroupIcon($detailGroupLabel);
+                            $groupSubChildren = $subGroupsMap[$detailGroupLabel] ?? [];
                         @endphp
                         <div
-                            x-show="activeGroup === @js($group->getLabel())"
+                            x-show="activeGroup === @js($detailGroupLabel)"
                             x-cloak
                             class="fi-sidebar-detail-panel"
                         >
@@ -382,7 +471,7 @@
                                     />
                                 @endif
                                 <span class="flex-1 truncate text-sm font-semibold text-gray-900 dark:text-white">
-                                    {{ $group->getLabel() }}
+                                    {{ $detailGroupLabel }}
                                 </span>
                             </div>
 
@@ -475,6 +564,73 @@
                             </ul>
                         </div>
                     @endif
+                @endforeach
+
+                {{-- Virtual detail panels: drilled labels not in $navigation (all content lives in sub-groups) --}}
+                @foreach ($virtualDrilledLabels as $virtualLabel)
+                    @php
+                        $groupSubChildren = $subGroupsMap[$virtualLabel] ?? [];
+                        $detailIcon = $resolveGroupIcon($virtualLabel);
+                    @endphp
+                    <div
+                        x-show="activeGroup === @js($virtualLabel)"
+                        x-cloak
+                        class="fi-sidebar-detail-panel"
+                    >
+                        <div class="fi-sidebar-detail-header flex items-center gap-x-2 px-1 mb-4">
+                            <button
+                                type="button"
+                                x-on:click="goBack()"
+                                :aria-label="@js(__('Back'))"
+                                class="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 dark:text-gray-500 transition duration-75 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/5 dark:hover:text-gray-200 outline-none focus-visible:bg-gray-100 dark:focus-visible:bg-white/5 shrink-0"
+                            >
+                                <x-filament::icon
+                                    :icon="$isRtl ? 'heroicon-m-chevron-right' : 'heroicon-m-chevron-left'"
+                                    class="h-4 w-4"
+                                />
+                            </button>
+                            @if ($detailIcon)
+                                <x-filament::icon
+                                    :icon="$detailIcon"
+                                    class="h-5 w-5 text-primary-500 dark:text-primary-400 shrink-0"
+                                />
+                            @endif
+                            <span class="flex-1 truncate text-sm font-semibold text-gray-900 dark:text-white">
+                                {{ $virtualLabel }}
+                            </span>
+                        </div>
+
+                        @if ($searchEnabled)
+                            <div class="px-2 pb-3">
+                                <input
+                                    type="text"
+                                    x-model="search"
+                                    placeholder="{{ __('Search...') }}"
+                                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-500"
+                                />
+                            </div>
+                        @endif
+
+                        @if (count($groupSubChildren) > 0)
+                            <ul class="fi-sidebar-nav-groups fi-sidebar-nested-groups flex flex-col gap-y-7 mb-3">
+                                @foreach ($groupSubChildren as $childLabel)
+                                    @php
+                                        $childNavGroup = $navigationByLabel->get($childLabel);
+                                    @endphp
+                                    @if ($childNavGroup && count($childNavGroup->getItems()) > 0)
+                                        <x-filament-panels::sidebar.group
+                                            :active="$childNavGroup->isActive()"
+                                            :collapsible="$childNavGroup->isCollapsible()"
+                                            :icon="$childNavGroup->getIcon()"
+                                            :items="$childNavGroup->getItems()"
+                                            :label="$childNavGroup->getLabel()"
+                                            :attributes="\Filament\Support\prepare_inherited_attributes($childNavGroup->getExtraSidebarAttributeBag())"
+                                        />
+                                    @endif
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
                 @endforeach
             </div>
 
