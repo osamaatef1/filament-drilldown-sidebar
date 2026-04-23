@@ -461,42 +461,39 @@
                                             $itemActiveIcon = null;
                                         }
                                     @endphp
-                                    <li
+                                    <x-filament-panels::sidebar.item
+                                        :active="$item->isActive()"
+                                        :active-child-items="$item->isChildItemsActive()"
+                                        :active-icon="$itemActiveIcon"
+                                        :badge="$item->getBadge()"
+                                        :badge-color="$item->getBadgeColor()"
+                                        :badge-tooltip="$item->getBadgeTooltip()"
+                                        :child-items="$item->getChildItems()"
+                                        :first="$loop->first"
+                                        :grouped="true"
+                                        :icon="$itemIcon"
+                                        :last="$loop->last"
+                                        :should-open-url-in-new-tab="$item->shouldOpenUrlInNewTab()"
+                                        :sidebar-collapsible="false"
+                                        :url="$item->getUrl()"
                                         @if ($searchEnabled)
                                             x-show="search === '' || '{{ strtolower($item->getLabel()) }}'.includes(search.toLowerCase())"
                                         @endif
                                     >
-                                        <x-filament-panels::sidebar.item
-                                            :active="$item->isActive()"
-                                            :active-child-items="$item->isChildItemsActive()"
-                                            :active-icon="$itemActiveIcon"
-                                            :badge="$item->getBadge()"
-                                            :badge-color="$item->getBadgeColor()"
-                                            :badge-tooltip="$item->getBadgeTooltip()"
-                                            :child-items="$item->getChildItems()"
-                                            :first="$loop->first"
-                                            :grouped="true"
-                                            :icon="$itemIcon"
-                                            :last="$loop->last"
-                                            :should-open-url-in-new-tab="$item->shouldOpenUrlInNewTab()"
-                                            :sidebar-collapsible="false"
-                                            :url="$item->getUrl()"
-                                        >
-                                            {{ $item->getLabel() }}
+                                        {{ $item->getLabel() }}
 
-                                            @if ($itemIcon instanceof \Illuminate\Contracts\Support\Htmlable)
-                                                <x-slot name="icon">
-                                                    {{ $itemIcon }}
-                                                </x-slot>
-                                            @endif
+                                        @if ($itemIcon instanceof \Illuminate\Contracts\Support\Htmlable)
+                                            <x-slot name="icon">
+                                                {{ $itemIcon }}
+                                            </x-slot>
+                                        @endif
 
-                                            @if ($itemActiveIcon instanceof \Illuminate\Contracts\Support\Htmlable)
-                                                <x-slot name="activeIcon">
-                                                    {{ $itemActiveIcon }}
-                                                </x-slot>
-                                            @endif
-                                        </x-filament-panels::sidebar.item>
-                                    </li>
+                                        @if ($itemActiveIcon instanceof \Illuminate\Contracts\Support\Htmlable)
+                                            <x-slot name="activeIcon">
+                                                {{ $itemActiveIcon }}
+                                            </x-slot>
+                                        @endif
+                                    </x-filament-panels::sidebar.item>
                                 @endforeach
                             </ul>
                         </div>
@@ -585,42 +582,39 @@
                                                 $itemActiveIcon = null;
                                             }
                                         @endphp
-                                        <li
+                                        <x-filament-panels::sidebar.item
+                                            :active="$item->isActive()"
+                                            :active-child-items="$item->isChildItemsActive()"
+                                            :active-icon="$itemActiveIcon"
+                                            :badge="$item->getBadge()"
+                                            :badge-color="$item->getBadgeColor()"
+                                            :badge-tooltip="$item->getBadgeTooltip()"
+                                            :child-items="$item->getChildItems()"
+                                            :first="$loop->first"
+                                            :grouped="true"
+                                            :icon="$itemIcon"
+                                            :last="$loop->last"
+                                            :should-open-url-in-new-tab="$item->shouldOpenUrlInNewTab()"
+                                            :sidebar-collapsible="false"
+                                            :url="$item->getUrl()"
                                             @if ($searchEnabled)
                                                 x-show="search === '' || '{{ strtolower($item->getLabel()) }}'.includes(search.toLowerCase())"
                                             @endif
                                         >
-                                            <x-filament-panels::sidebar.item
-                                                :active="$item->isActive()"
-                                                :active-child-items="$item->isChildItemsActive()"
-                                                :active-icon="$itemActiveIcon"
-                                                :badge="$item->getBadge()"
-                                                :badge-color="$item->getBadgeColor()"
-                                                :badge-tooltip="$item->getBadgeTooltip()"
-                                                :child-items="$item->getChildItems()"
-                                                :first="$loop->first"
-                                                :grouped="true"
-                                                :icon="$itemIcon"
-                                                :last="$loop->last"
-                                                :should-open-url-in-new-tab="$item->shouldOpenUrlInNewTab()"
-                                                :sidebar-collapsible="false"
-                                                :url="$item->getUrl()"
-                                            >
-                                                {{ $item->getLabel() }}
+                                            {{ $item->getLabel() }}
 
-                                                @if ($itemIcon instanceof \Illuminate\Contracts\Support\Htmlable)
-                                                    <x-slot name="icon">
-                                                        {{ $itemIcon }}
-                                                    </x-slot>
-                                                @endif
+                                            @if ($itemIcon instanceof \Illuminate\Contracts\Support\Htmlable)
+                                                <x-slot name="icon">
+                                                    {{ $itemIcon }}
+                                                </x-slot>
+                                            @endif
 
-                                                @if ($itemActiveIcon instanceof \Illuminate\Contracts\Support\Htmlable)
-                                                    <x-slot name="activeIcon">
-                                                        {{ $itemActiveIcon }}
-                                                    </x-slot>
-                                                @endif
-                                            </x-filament-panels::sidebar.item>
-                                        </li>
+                                            @if ($itemActiveIcon instanceof \Illuminate\Contracts\Support\Htmlable)
+                                                <x-slot name="activeIcon">
+                                                    {{ $itemActiveIcon }}
+                                                </x-slot>
+                                            @endif
+                                        </x-filament-panels::sidebar.item>
                                     @endforeach
                                 </ul>
                             </div>
