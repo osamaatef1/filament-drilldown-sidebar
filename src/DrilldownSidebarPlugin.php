@@ -3,7 +3,9 @@
 namespace OsamaAtef\DrilldownSidebar;
 
 use Filament\Contracts\Plugin;
+use Filament\Facades\Filament;
 use Filament\Panel;
+use ReflectionClass;
 
 class DrilldownSidebarPlugin implements Plugin
 {
@@ -13,6 +15,9 @@ class DrilldownSidebarPlugin implements Plugin
     protected array $subGroups = [];
 
     protected bool $searchEnabled = false;
+
+    /** @var array<string, array<string>>|null Request-scoped cache for auto-discovered map */
+    protected ?array $discoveredSubGroups = null;
 
     public static function make(): static
     {
@@ -51,11 +56,14 @@ class DrilldownSidebarPlugin implements Plugin
     }
 
     /**
-     * Define which navigation groups are nested sub-groups of a drilled group.
-     * Clicking a sub-group in the detail view slides to a third-level panel.
+     * Manually declare which navigation groups are nested sub-groups of a parent group.
+     *
+     * When provided, this overrides auto-discovery. Otherwise the plugin reflects over
+     * the panel's resources and builds the map from each resource's static
+     * `$navigationParentGroup` property.
      *
      * Example:
-     *   ->subGroups(['Lighthouse' => ['Sports', 'Workshops', 'Packages']])
+     *   ->subGroups(['Lighthouse' => ['Activities', 'Insights']])
      *
      * @param  array<string, array<string>>  $groups
      */
@@ -71,7 +79,11 @@ class DrilldownSidebarPlugin implements Plugin
      */
     public function getSubGroups(): array
     {
-        return $this->subGroups;
+        if (! empty($this->subGroups)) {
+            return $this->subGroups;
+        }
+
+        return $this->discoveredSubGroups ??= $this->discoverSubGroups();
     }
 
     /**
@@ -98,5 +110,61 @@ class DrilldownSidebarPlugin implements Plugin
     public function boot(Panel $panel): void
     {
         //
+    }
+
+    /**
+     * Scan registered panel resources for a static `$navigationParentGroup`
+     * property and build the [parent => [children]] map from it.
+     *
+     * Resources opt into nesting declaratively:
+     *
+     *     protected static ?string $navigationGroup = 'Activities';
+     *     protected static ?string $navigationParentGroup = 'Lighthouse';
+     *
+     * @return array<string, array<string>>
+     */
+    protected function discoverSubGroups(): array
+    {
+        $panel = Filament::getCurrentPanel();
+
+        if (! $panel) {
+            return [];
+        }
+
+        $map = [];
+
+        foreach ($panel->getResources() as $resourceClass) {
+            try {
+                $ref = new ReflectionClass($resourceClass);
+
+                if (! $ref->hasProperty('navigationParentGroup')) {
+                    continue;
+                }
+
+                $prop = $ref->getProperty('navigationParentGroup');
+                $prop->setAccessible(true);
+                $parent = $prop->getValue();
+
+                if (! $parent) {
+                    continue;
+                }
+
+                $child = $resourceClass::getNavigationGroup();
+
+                if (! $child) {
+                    continue;
+                }
+
+                $map[$parent] ??= [];
+
+                if (! in_array($child, $map[$parent], true)) {
+                    $map[$parent][] = $child;
+                }
+            } catch (\Throwable) {
+                // Ignore resources that fail reflection (e.g. abstract, missing)
+            }
+        }
+
+        return $map;
     }
 }
